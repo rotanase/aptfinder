@@ -16,7 +16,7 @@ function wktPointToLngLat(wkt: string | null) {
 
 export default function Map({ items }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map>();
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
