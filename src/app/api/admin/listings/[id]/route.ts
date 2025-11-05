@@ -5,8 +5,7 @@ function db() {
   return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 }
 
-// PATCH /api/admin/listings/[id]
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+async function updateListing(req: Request, params: { id: string }) {
   const body = await req.json().catch(() => ({}));
   const status = typeof body.status === 'string' ? body.status : undefined;
   if (!status) return NextResponse.json({ ok: false, error: 'status required' }, { status: 400 });
@@ -18,6 +17,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   if (error) return NextResponse.json({ ok: false, error }, { status: 500 });
   return NextResponse.json({ ok: true });
+}
+
+// PATCH /api/admin/listings/[id]
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  return updateListing(req, params);
 }
 
 // Support HTML form submit via POST, then redirect back to /admin
@@ -36,10 +41,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   if (!status) return NextResponse.json({ ok: false, error: 'status required' }, { status: 400 });
 
-  // Reuse the PATCH logic
-  const resp = await PATCH(
+  // Reuse the PATCH logic by calling updateListing
+  const resp = await updateListing(
     new Request(req.url, { method: 'PATCH', body: JSON.stringify({ status }) }),
-    { params },
+    params,
   );
 
   // If it was a form submit, redirect to /admin after update
