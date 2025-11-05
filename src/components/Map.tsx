@@ -8,10 +8,13 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 type Props = { items: Array<{ id:string; title:string|null; url:string; location:string|null }> };
 
 function wktPointToLngLat(wkt: string | null) {
-  if (!wkt) return null; // "SRID=4326;POINT(lon lat)"
-  const m = wkt.match(/POINT\(([-\d\.]+) ([-\d\.]+)\)/);
+  if (!wkt) return null;
+  // It's not WKT, it's EWKB hex
+  const m = wkt.match(/^0101000020E6100000([0-9A-F]{16})([0-9A-F]{16})$/i);
   if (!m) return null;
-  return [parseFloat(m[1]), parseFloat(m[2])] as [number, number];
+  const lon = Buffer.from(m[1], 'hex').readDoubleLE(0);
+  const lat = Buffer.from(m[2], 'hex').readDoubleLE(0);
+  return [lon, lat] as [number, number];
 }
 
 export default function Map({ items }: Props) {
@@ -27,7 +30,7 @@ export default function Map({ items }: Props) {
     mapRef.current = new mapboxgl.Map({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [26.1025, 44.4268],
+      center: [26.1013, 44.4235],
       zoom: 11,
     });
   }, []);
@@ -48,7 +51,7 @@ export default function Map({ items }: Props) {
       (map as any).__markers.push(marker);
     });
 
-    if (coords.length) {
+    if (coords.length > 1) {
       const bounds = new mapboxgl.LngLatBounds(coords[0], coords[0]);
       coords.forEach(c => bounds.extend(c));
       map.fitBounds(bounds, { padding: 40, maxZoom: 14, duration: 0 });

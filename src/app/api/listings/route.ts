@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const smin = Number(searchParams.get('smin') || 0);
 
   let q = supabase.from('listings')
-    .select('id,title,url,price,currency,rooms,surface_sqm,address_norm,source_id,images,posted_at,location')
+    .select('id,title,url,price,currency,rooms,surface_sqm,address_norm,source_id,images,posted_at,location:location::text')
     .gte('price', pmin).lte('price', pmax)
     .gte('rooms', rmin)
     .gte('surface_sqm', smin)
