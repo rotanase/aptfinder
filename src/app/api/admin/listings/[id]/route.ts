@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 function db() {
@@ -21,7 +21,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 // Support HTML form submit via POST, then redirect back to /admin
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   const ct = req.headers.get('content-type') || '';
   let status: string | undefined;
 
