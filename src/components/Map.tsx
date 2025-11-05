@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
-type Props = { items: Array<{ id:string; title:string|null; url:string; location:string|null }> };
+type Props = { items: Array<{ id:string; title:string|null; url:string; location:string|null }>, onMarkerClick?: (id: string) => void };
 
 function wktPointToLngLat(wkt: string | null) {
   if (!wkt) return null;
@@ -17,7 +17,7 @@ function wktPointToLngLat(wkt: string | null) {
   return [lon, lat] as [number, number];
 }
 
-export default function Map({ items }: Props) {
+export default function Map({ items, onMarkerClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
@@ -30,8 +30,8 @@ export default function Map({ items }: Props) {
     mapRef.current = new mapboxgl.Map({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [26.1013, 44.4235],
-      zoom: 11,
+      center: [26.0861, 44.4522],
+      zoom: 12,
     });
   }, []);
 
@@ -48,6 +48,9 @@ export default function Map({ items }: Props) {
       if (!ll) return;
       coords.push(ll);
       const marker = new mapboxgl.Marker().setLngLat(ll).addTo(map);
+      marker.getElement().addEventListener('click', () => {
+        onMarkerClick?.(it.id);
+      });
       (map as any).__markers.push(marker);
     });
 
@@ -58,5 +61,5 @@ export default function Map({ items }: Props) {
     }
   }, [items]);
 
-  return <div ref={containerRef} className="w-full h-[60vh] rounded-lg border bg-gray-100" />;
+  return <div ref={containerRef} className="w-full h-full rounded-lg border bg-gray-100" />;
 }
